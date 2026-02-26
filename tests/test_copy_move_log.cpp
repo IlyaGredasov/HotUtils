@@ -3,46 +3,71 @@
 #include <type_traits>
 
 #include "hot_utils/copy_move_log.hpp"
+#include "hot_utils/streamlined_vector.hpp"
 
 TEST(CopyLog, CountsCopyOps) {
-    static_assert(!std::is_move_constructible_v<hot_utils::CopyLog>);
-    static_assert(!std::is_move_assignable_v<hot_utils::CopyLog>);
+    using Log = hot_utils::CopyLog<int>;
+    static_assert(!std::is_move_constructible_v<Log>);
+    static_assert(!std::is_move_assignable_v<Log>);
 
-    hot_utils::CopyLog::reset();
-    hot_utils::CopyLog a;
-    hot_utils::CopyLog b = a;
+    Log::reset();
+    Log a;
+    Log b = a;
     b = a;
 
-    auto counts = hot_utils::CopyLog::counts();
+    auto counts = Log::counts();
     EXPECT_EQ(counts.copy_ctor, 1u);
     EXPECT_EQ(counts.copy_assign, 1u);
 }
 
 TEST(MoveLog, CountsMoveOps) {
-    static_assert(!std::is_copy_constructible_v<hot_utils::MoveLog>);
-    static_assert(!std::is_copy_assignable_v<hot_utils::MoveLog>);
+    using Log = hot_utils::MoveLog<int>;
+    static_assert(!std::is_copy_constructible_v<Log>);
+    static_assert(!std::is_copy_assignable_v<Log>);
 
-    hot_utils::MoveLog::reset();
-    hot_utils::MoveLog a;
-    hot_utils::MoveLog b = std::move(a);
-    b = hot_utils::MoveLog{};
+    Log::reset();
+    Log a;
+    Log b = std::move(a);
+    b = Log{};
 
-    auto counts = hot_utils::MoveLog::counts();
+    auto counts = Log::counts();
     EXPECT_EQ(counts.move_ctor, 1u);
     EXPECT_EQ(counts.move_assign, 1u);
 }
 
 TEST(CopyMoveLog, CountsBothOps) {
-    hot_utils::CopyMoveLog::reset();
-    hot_utils::CopyMoveLog a;
-    hot_utils::CopyMoveLog b = a;
+    using Log = hot_utils::CopyMoveLog<int>;
+    Log::reset();
+    Log a;
+    Log b = a;
     b = a;
-    hot_utils::CopyMoveLog c = std::move(b);
-    c = hot_utils::CopyMoveLog{};
+    Log c = std::move(b);
+    c = Log{};
 
-    auto counts = hot_utils::CopyMoveLog::counts();
+    auto counts = Log::counts();
     EXPECT_EQ(counts.copy_ctor, 1u);
     EXPECT_EQ(counts.copy_assign, 1u);
     EXPECT_EQ(counts.move_ctor, 1u);
     EXPECT_EQ(counts.move_assign, 1u);
+}
+
+TEST(CopyMoveLog, SupportsNestedLoggedTypes) {
+    using Inner = hot_utils::CopyMoveLog<int>;
+    using Vec = hot_utils::StreamlinedVector<Inner, 2>;
+    using Outer = hot_utils::CopyMoveLog<Vec>;
+
+    Inner::reset();
+    Outer::reset();
+
+    Outer a;
+    Outer b = a;
+    Outer c = std::move(b);
+
+    const auto outer_counts = Outer::counts();
+    EXPECT_EQ(outer_counts.copy_ctor, 1u);
+    EXPECT_EQ(outer_counts.move_ctor, 1u);
+
+    const auto inner_counts = Inner::counts();
+    EXPECT_EQ(inner_counts.copy_ctor, 2u);
+    EXPECT_EQ(inner_counts.move_ctor, 2u);
 }
