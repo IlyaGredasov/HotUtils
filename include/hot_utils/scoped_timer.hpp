@@ -12,13 +12,21 @@ namespace hot_utils {
 struct DefaultTimerLogger {
     void operator()(std::string_view label, std::chrono::milliseconds us) const {
         char buf[128];
-        std::snprintf(buf, sizeof(buf), "TIMER %.*s: %lld ms", static_cast<int>(label.size()), label.data(),
-            static_cast<long long>(us.count()));
+        std::snprintf(
+            buf,
+            sizeof(buf),
+            "TIMER %.*s: %lld ms",
+            static_cast<int>(label.size()),
+            label.data(),
+            static_cast<long long>(us.count())
+        );
         detail::log_line("TIME", buf);
     }
 };
 
-template <class Duration = std::chrono::milliseconds, class Clock = std::chrono::high_resolution_clock,
+template <
+    class Duration = std::chrono::milliseconds,
+    class Clock = std::chrono::high_resolution_clock,
     class Logger = DefaultTimerLogger>
 class ScopedTimer {
 public:
@@ -27,6 +35,8 @@ public:
 
     ScopedTimer(const ScopedTimer&) = delete;
     ScopedTimer& operator=(const ScopedTimer&) = delete;
+    ScopedTimer(ScopedTimer&&) = default;
+    ScopedTimer& operator=(ScopedTimer&&) = default;
 
     ~ScopedTimer() { log(); }
 

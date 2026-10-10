@@ -3,44 +3,44 @@
 #include <type_traits>
 #include <utility>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "hot_utils/copy_move_log.hpp"
 #include "hot_utils/streamlined_vector.hpp"
 
 namespace {
 
-template <typename T, std::size_t N>
+template <typename T, size_t N>
 void expect_vector_eq(const hot_utils::StreamlinedVector<T, N>& actual, const std::array<T, N>& expected) {
-    for (std::size_t i = 0; i < N; ++i) {
+    for (size_t i = 0; i < N; ++i) {
         EXPECT_EQ(actual.data[i], expected[i]);
     }
 }
 
-template <std::size_t N>
+template <size_t N>
 using CopyVec = hot_utils::StreamlinedVector<hot_utils::CopyLog<int>, N>;
 
-template <std::size_t N>
+template <size_t N>
 using MoveVec = hot_utils::StreamlinedVector<hot_utils::MoveLog<int>, N>;
 
-template <std::size_t N>
+template <size_t N>
 using CopyMoveVec = hot_utils::StreamlinedVector<hot_utils::CopyMoveLog<int>, N>;
 
-template <std::size_t N>
+template <size_t N>
 void consume_by_value(CopyMoveVec<N>) {}
 
-template <std::size_t N>
+template <size_t N>
 void consume_by_ref(CopyMoveVec<N>&) {}
 
-template <std::size_t N>
+template <size_t N>
 void consume_by_const_ref(const CopyMoveVec<N>&) {}
 
-template <std::size_t N>
+template <size_t N>
 void consume_by_rref(CopyMoveVec<N>&&) {}
 
 struct NumberLog {
     int value = 0;
-    hot_utils::CopyMoveLog<int> log{};
+    hot_utils::CopyMoveLog<int> log;
 
     NumberLog() = default;
     explicit NumberLog(int v) : value(v) {}
@@ -85,7 +85,7 @@ TEST(StreamlinedVectorTypes, CopyMoveTraitsFollowElementType) {
 }
 
 TEST(StreamlinedVectorTypes, CopyOnlyElementMovesViaCopyFallback) {
-    constexpr std::size_t n = 3;
+    constexpr size_t n = 3;
     using Vec = CopyVec<n>;
 
     hot_utils::CopyLog<int>::reset();
@@ -98,7 +98,7 @@ TEST(StreamlinedVectorTypes, CopyOnlyElementMovesViaCopyFallback) {
 }
 
 TEST(StreamlinedVectorTypes, MoveOnlyElementCanMoveWithoutCopy) {
-    constexpr std::size_t n = 3;
+    constexpr size_t n = 3;
     using Vec = MoveVec<n>;
 
     hot_utils::MoveLog<int>::reset();
@@ -170,7 +170,7 @@ TEST(StreamlinedVectorPrint, UsesOutputStreamIterator) {
 }
 
 TEST(StreamlinedVectorConstMove, MovingFromConstFallsBackToCopy) {
-    constexpr std::size_t n = 4;
+    constexpr size_t n = 4;
     using Vec = CopyMoveVec<n>;
 
     hot_utils::CopyMoveLog<int>::reset();
@@ -183,7 +183,7 @@ TEST(StreamlinedVectorConstMove, MovingFromConstFallsBackToCopy) {
 }
 
 TEST(StreamlinedVectorConstMove, MovingNonConstUsesMoveCtor) {
-    constexpr std::size_t n = 4;
+    constexpr size_t n = 4;
     using Vec = CopyMoveVec<n>;
 
     hot_utils::CopyMoveLog<int>::reset();
@@ -196,7 +196,7 @@ TEST(StreamlinedVectorConstMove, MovingNonConstUsesMoveCtor) {
 }
 
 TEST(StreamlinedVectorConstMove, ReusingSourceInMultiplePlacesCopiesEachTime) {
-    constexpr std::size_t n = 4;
+    constexpr size_t n = 4;
     using Vec = CopyMoveVec<n>;
 
     hot_utils::CopyMoveLog<int>::reset();
@@ -210,7 +210,7 @@ TEST(StreamlinedVectorConstMove, ReusingSourceInMultiplePlacesCopiesEachTime) {
 }
 
 TEST(StreamlinedVectorConstMove, PlusWithRvalueLhsAvoidsCopiesOfLhsElements) {
-    constexpr std::size_t n = 3;
+    constexpr size_t n = 3;
     using Vec = hot_utils::StreamlinedVector<NumberLog, n>;
 
     hot_utils::CopyMoveLog<int>::reset();
@@ -224,7 +224,7 @@ TEST(StreamlinedVectorConstMove, PlusWithRvalueLhsAvoidsCopiesOfLhsElements) {
 }
 
 TEST(StreamlinedVectorFunctionParams, ByValueCopiesLvalueAndMovesRvalue) {
-    constexpr std::size_t n = 5;
+    constexpr size_t n = 5;
     using Vec = CopyMoveVec<n>;
 
     Vec vec{};
@@ -243,7 +243,7 @@ TEST(StreamlinedVectorFunctionParams, ByValueCopiesLvalueAndMovesRvalue) {
 }
 
 TEST(StreamlinedVectorFunctionParams, RefConstRefAndRRefDoNotCopyByThemselves) {
-    constexpr std::size_t n = 5;
+    constexpr size_t n = 5;
     using Vec = CopyMoveVec<n>;
 
     Vec vec{};

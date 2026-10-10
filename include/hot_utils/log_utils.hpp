@@ -18,16 +18,14 @@ namespace detail {
         std::fprintf(stderr, "[%s] %.*s\n", level, static_cast<int>(msg.size()), msg.data());
     }
 
-    inline thread_local std::size_t call_depth = 0;
+    inline thread_local size_t call_depth = 0;
 
-    inline void log_call_impl(const char* file, int line, const char* func, const char* expr, std::size_t depth) {
+    inline void log_call_impl(const char* file, int line, const char* func, const char* expr, size_t depth) {
         std::fprintf(stderr, "[CALL] %*s%s:%d %s -> %s\n", static_cast<int>(depth * 2), "", file, line, func, expr);
     }
 
     struct CallDepthGuard {
-        explicit CallDepthGuard(bool enabled)
-            : enabled_(enabled)
-            , depth_(call_depth) {
+        explicit CallDepthGuard(bool enabled) : enabled_(enabled), depth_(call_depth) {
             if (enabled_) {
                 ++call_depth;
             }
@@ -39,11 +37,11 @@ namespace detail {
             }
         }
 
-        std::size_t depth() const { return depth_; }
+        size_t depth() const { return depth_; }
 
     private:
         bool enabled_ = false;
-        std::size_t depth_ = 0;
+        size_t depth_ = 0;
     };
 
     template <bool Enabled, typename F>
@@ -66,12 +64,17 @@ inline void log_call(const char* file, int line, const char* func) {
 
 // Convenience macros for capturing call site without changing expression semantics.
 #define HOT_UTILS_LOG_CALL(expr)                                                                                       \
-    ::hot_utils::detail::log_call_expr<::hot_utils::kDebugEnabled>(__FILE__, __LINE__, __func__, #expr, [&]()       \
-                                                                    -> decltype(auto) { return (expr); })
+    ::hot_utils::detail::log_call_expr<::hot_utils::kDebugEnabled>(                                                    \
+        __FILE__,                                                                                                      \
+        __LINE__,                                                                                                      \
+        __func__,                                                                                                      \
+        #expr,                                                                                                         \
+        [&]() -> decltype(auto) { return (expr); }                                                                     \
+    )
 
-#define HOT_UTILS_LOG_CALL_IF(Enabled, expr)                                                                          \
-    ::hot_utils::detail::log_call_expr<Enabled>(__FILE__, __LINE__, __func__, #expr, [&]() -> decltype(auto) {      \
-        return (expr);                                                                                                \
+#define HOT_UTILS_LOG_CALL_IF(Enabled, expr)                                                                           \
+    ::hot_utils::detail::log_call_expr<Enabled>(__FILE__, __LINE__, __func__, #expr, [&]() -> decltype(auto) {         \
+        return (expr);                                                                                                 \
     })
 
 // Debug logging toggled by NDEBUG.

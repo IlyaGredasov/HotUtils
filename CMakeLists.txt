@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(HotUtils)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(HOT_UTILS_BUILD_TESTS "Build HotUtils tests" ON)
 
 add_library(hot_utils INTERFACE)

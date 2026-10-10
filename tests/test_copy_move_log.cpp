@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
-
 #include <type_traits>
+
+#include <gtest/gtest.h>
 
 #include "hot_utils/copy_move_log.hpp"
 #include "hot_utils/streamlined_vector.hpp"

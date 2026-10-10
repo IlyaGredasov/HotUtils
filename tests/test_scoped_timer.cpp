@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "hot_utils/scoped_timer.hpp"
 
@@ -24,12 +24,14 @@ TEST(ScopedTimer, SupportsCustomTypes) {
     g_called = 0;
 
     struct NanoLogger {
-        void operator()(std::string_view, std::chrono::nanoseconds) const { ++g_called; }
+        void operator()(std::string_view /*unused*/, std::chrono::nanoseconds /*unused*/) const { ++g_called; }
     };
 
     {
-        hot_utils::ScopedTimer<std::chrono::nanoseconds, std::chrono::steady_clock, NanoLogger> timer("unit",
-            NanoLogger{});
+        hot_utils::ScopedTimer<std::chrono::nanoseconds, std::chrono::steady_clock, NanoLogger> timer(
+            "unit",
+            NanoLogger{}
+        );
     }
 
     EXPECT_EQ(g_called, 1);
